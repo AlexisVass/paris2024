@@ -124,6 +124,8 @@ python main.py
 ```
 Ce programme "main.py" exécute l'ensemble de la chaine de traitement : il parcourt le site web des jeux Olympiques pour extraire les données (scraping), génère une base de données, charge les données du scraping dans les tables de cette base et lance le requêteur qui permet de lancer des requêtes SQL pour interroger la base de données.
 
+**/!\  Attention :**  
+_Pendant l’exécution du programme, il est important de ne pas interagir manuellement avec les fenêtres du navigateur que le script ouvre automatiquement. Cliquer, fermer ou bouger quoi que ce soit peut perturber le déroulement du scraping, entraîner des erreurs, ou bloquer l’extraction de certaines données. Par précaution, il est également préférable de ne pas utiliser un autre navigateur en parallèle, surtout si vous êtes connecté au même site. Cela peut interférer avec les sessions en cours du script._
 
 ## I.4  Utilisation du Requêteur
 ### I.4.1 **Menu proposé**
