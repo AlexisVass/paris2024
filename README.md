@@ -433,7 +433,7 @@ Pour garantir l’intégrité des données, les sports sont insérés dans la ta
 Les épreuves sont insérées dans la table epreuve en tenant compte du couple (nom_epreuve, id_sport) afin d’éviter les doublons liés à des intitulés identiques entre sports différents.
 Chaque ligne du fichier est ensuite insérée dans la table resultat, avec conversion des médailles ("O", "A", "B") et liaison aux clés étrangères correspondantes.
 
-Cette logique assure une insertion optimisée et normalisée des données, conforme au schéma relationnel du modèle.
+Cette logique assure qu'il n'y ait pas de doublons, conformément au schéma relationnel normalisé du modèle.
 
 #### II.4.2.3 – Récupération des pays manquants (fix_na_pays.py)
 On a vu que certaines lignes ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping).
