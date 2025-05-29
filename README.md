@@ -35,7 +35,7 @@ Le projet repose intégralement sur l’écosystème Python, avec :
 ## I.1 Déploiement du projet
 Tous les fichiers sources du projet sont contenus dans le répertoire GitHub : 
 ```sh
-"https://git.esiee.fr/avassalo/paris2024"
+"https://github.com/AlexisVass/paris2024"
 ```
 Ce répertoire est public et il contient l’ensemble du code strictement nécessaire pour exécuter le projet.
 
@@ -70,7 +70,7 @@ paris2024/
 Pour déployer le projet sur une autre machine, il suffit de copier ce répertoire "paris2024" (et tout son contenu) sur la machine cible avec la commande:
 
 ```sh
-$ git clone https://git.esiee.fr/vassaloa/myproject
+$ git clone https://github.com/AlexisVass/paris2024
 $ cd paris2024
 ```
 
@@ -559,9 +559,9 @@ Et d’obtenir tous les résultats comme :
 ___________________
 # III - Conclusion
 
-Ce projet m’a permis d’explorer de bout en bout une problématique concrète de collecte et d’exploitation de données issues d’un site web moderne. L’objectif était de récupérer automatiquement les résultats des épreuves des Jeux Olympiques de Paris 2024, puis de structurer ces données dans une base relationnelle interrogeable. Pour cela, j’ai utilisé Playwright afin d’automatiser la navigation sur un site entièrement dynamique, ce qui m’a confronté à des enjeux spécifiques comme le chargement différé des blocs, le scroll automatique ou encore la gestion des éléments interactifs. Cela m’a permis de franchir un cap, ayant jusque-là principalement travaillé avec BeautifulSoup sur des pages statiques.
+Ce projet m’a permis d’explorer de bout en bout une problématique concrète de collecte et d’exploitation de données issues d’un site web moderne. L’objectif était de récupérer automatiquement les résultats des épreuves des Jeux Olympiques de Paris 2024, puis de structurer ces données dans une base relationnelle interrogeable. Pour cela, j’ai utilisé Playwright afin d’automatiser la navigation sur un site entièrement dynamique, ce qui m’a confronté à des problématiques comme le chargement différé des blocs, le scroll automatique ou encore la gestion des éléments interactifs. La suite du projet m’a conduit à modéliser les données sous forme de tables normalisées, puis à créer un requêteur SQL simple mais fonctionnel. 
 
-La suite du projet m’a conduit à modéliser les données sous forme de tables normalisées, puis à créer un requêteur SQL simple mais fonctionnel. Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE.
+Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
 
 Des pistes d’amélioration du projet seraient d'ajouter une variable de configuration pour rendre le projet compatible avec d’autres éditions des Jeux Olympiques (Tokyo 2020, Londres 2012, etc.), ou intégrer un module de visualisation graphique pour compléter les requêtes SQL par des représentations plus conviviales qui pourraient de plus comparer les éditions entre elles.
 
