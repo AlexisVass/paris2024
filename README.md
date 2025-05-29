@@ -95,9 +95,16 @@ $env:PLAYWRIGHT_DOWNLOAD_HOST = "https://playwright.azureedge.net"
 **5. Installer les dépendances:**
 ```bash
 pip install -r requirements.txt
-``` 
+```
+/!\  Remarque : Si l'installation des dépendances échoue à cause d'une erreur SSL (CERTIFICATE_VERIFY_FAILED), on peut relancer la commande suivante pour contourner le problème :
+
+```bash
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+```
+
 **6. (Optionnel) Si playwright est mal installé depuis requirements.txt : Ré-installer playwright:**
 ```bash
+$env:NODE_TLS_REJECT_UNAUTHORIZED = "0"
 python -m pip install playwright
 ```
 **7. Installer les navigateurs pour Playwright:**
