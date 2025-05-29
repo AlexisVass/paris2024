@@ -1,0 +1,14 @@
+# Ignorer l'environnement virtuel
+.venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+
+# Données générées
+*.db
+data/rawdata.csv
+
+# Fichiers système
+.DS_Store
+Thumbs.db
