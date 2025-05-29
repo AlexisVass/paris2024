@@ -153,6 +153,7 @@ Voici la liste des requêtes disponibles :
 * Détail du podium d’une épreuve
 * Liste des médaillés d’un pays
 * Participation ou palmarès d’un athlète
+* Nombre d'épreuves par sport
 
 Il est possible de rajouter des requêtes prédéfinies supplémentaires. Pour cela, il suffit de mettre le SQL de la requête dans un fichier (.sql)  et de placer ce fichier dans le répertoire "src/database/requetes_sql/". La nouvelle requête apparaitra alors dans la liste des requêtes disponibles au choix 1 du menu.
 
@@ -425,9 +426,14 @@ Ce programme lit le fichier pays.csv, contenant les couples (id_pays, nom_pays),
 vide avant chargement.
 
 #### II.4.2.2 – Chargement des résultats des épreuves (load_csv_to_db.py)
-Ce programme lit le fichier rawdata.csv généré par le scraping et insère les lignes dans la table resultat.
-Les sports et épreuves sont insérés préalablement dans les tables de référence sport et epreuve.
-Les clés étrangères sont automatiquement liées et les médailles sont converties en code "O", "A", "B" si présentes, sinon null.
+Ce script lit le fichier rawdata.csv et insère les résultats dans la base de données en complétant les tables sport, epreuve et resultat.
+
+Pour garantir l’intégrité des données, les sports sont insérés dans la table sport uniquement s’ils n’existent pas déjà, avec une mise en cache en mémoire pour éviter les requêtes redondantes.
+
+Les épreuves sont insérées dans la table epreuve en tenant compte du couple (nom_epreuve, id_sport) afin d’éviter les doublons liés à des intitulés identiques entre sports différents.
+Chaque ligne du fichier est ensuite insérée dans la table resultat, avec conversion des médailles ("O", "A", "B") et liaison aux clés étrangères correspondantes.
+
+Cette logique assure une insertion optimisée et normalisée des données, conforme au schéma relationnel du modèle.
 
 #### II.4.2.3 – Récupération des pays manquants (fix_na_pays.py)
 On a vu que certaines lignes ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping).
@@ -450,9 +456,10 @@ Certaines requêtes contiennent des paramètres nommés (comme :pays ou :epreuve
 | 5-Podium d'une épreuve.sql                | Affiche le podium d’une épreuve (médaillés or/argent/bronze)           |
 | 6-Liste des médaillés d'un pays.sql       | Affiche le détail des médailles (participant, épreuve, performance) d’un pays |
 | 7-Résultats d'un athlète.sql              | Recherche les résultats d’un athlète donné dans toutes les épreuves    |
+| 8-Nombre d'épreuves par sport             | Liste les sports par nombre d'épreuves décroissant   |
 
 
-##### Exemple de restitution obtenue avec la requête 6 pour le pays "France" :
+##### **Exemple de restitution obtenue avec la requête 6 pour le pays "France" :**
 
 pays | medaille | participant | nom_sport | nom_epreuve | resultats | note
 |:-----|:----|:-----|:-----|:-----|:-----|---:|
