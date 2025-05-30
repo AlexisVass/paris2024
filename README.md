@@ -426,19 +426,20 @@ Ce programme lit le fichier pays.csv, contenant les couples (id_pays, nom_pays),
 vide avant chargement.
 
 #### II.4.2.2 – Chargement des résultats des épreuves (load_csv_to_db.py)
-Ce script lit le fichier rawdata.csv et insère les résultats dans la base de données en complétant les tables sport, epreuve et resultat.
+Ce script lit le fichier rawdata.csv dans un DataFrame pandas, puis construit dynamiquement les trois tables relationnelles sport, epreuve et resultat.
 
-Pour garantir l’intégrité des données, les sports sont insérés dans la table sport uniquement s’ils n’existent pas déjà, avec une mise en cache en mémoire pour éviter les requêtes redondantes.
+Les libellés de sport et d’épreuve sont d’abord nettoyés, puis dédupliqués pour créer deux DataFrames distincts (df_sport, df_epreuve) avec des clés primaires simulées (id_sport, id_epreuve). Ces identifiants sont ensuite injectés dans le DataFrame initial afin de préparer un chargement propre dans la table resultat.
 
-Les épreuves sont insérées dans la table epreuve en tenant compte du couple (nom_epreuve, id_sport) afin d’éviter les doublons liés à des intitulés identiques entre sports différents.
-Chaque ligne du fichier est ensuite insérée dans la table resultat, avec conversion des médailles ("O", "A", "B") et liaison aux clés étrangères correspondantes.
+Les valeurs de médailles sont standardisées et transformées en codes ("O", "A", "B") ou laissées à NULL si absentes. La colonne equipe est également conservée telle quelle, ce qui implique un traitement correctif ultérieur (voir II.4.2.3).
 
-Cette logique assure qu'il n'y ait pas de doublons, conformément au schéma relationnel normalisé du modèle.
+L’ensemble des données est au final inséré dans la base via la méthode to_sql() de pandas, ce qui permet de respecter le modèle relationnel.
 
 #### II.4.2.3 – Récupération des pays manquants (fix_na_pays.py)
-On a vu que certaines lignes ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping).
-Ce script tente de corriger cela en croisant le champ participant (libellé) avec le nom des pays (pays.nom_pays).
-S’il y a correspondance exacte (minuscule / insensible à la casse), le champ equipe est corrigé avec le bon code pays (id_pays) correspondant.
+On a vu que certaines lignes de resultat ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping). Comme j'ai utilisé des DataFrames pour charger la table resultat, les "N/A" dans la colonne equipe ont été convertis en NaN, puis en NULL dans SQLite.
+
+Le script fix_na_pays.py tente de corriger cela en identifiant les lignes de la table resultat où equipe est NULL et où le participant correspond à un pays connu (présent dans la table pays). Lorsqu’une correspondance est trouvée, equipe est mise à jour avec la clé étrangère correspondante (id_pays).
+
+Cette opération permet de remplacer les valeurs null par des données fiables et d'éviter de devoir faire des jointures externes lorsqu'on analyse les données par pays.
 
 ### II.4.3  Requêtes SQL prédéfinies
 Le projet propose un ensemble de requêtes SQL prêtes à l’emploi pour interroger la base paris2024.db. Ces requêtes permettent d'explorer la base de données avec quelques restitutions basiques. Elles sont stockées dans le dossier src/database/requetes_sql/ et de ce fait sont détectées et proposées dans le menu du requêteur (choix 1).
@@ -577,12 +578,8 @@ ___________________
 
 Ce projet m’a permis d’explorer de bout en bout une problématique concrète de collecte et d’exploitation de données issues d’un site web moderne. L’objectif était de récupérer automatiquement les résultats des épreuves des Jeux Olympiques de Paris 2024, puis de structurer ces données dans une base relationnelle interrogeable. Pour cela, j’ai utilisé Playwright afin d’automatiser la navigation sur un site entièrement dynamique, ce qui m’a confronté à des problématiques comme le chargement différé des blocs, le scroll automatique ou encore la gestion des éléments interactifs. La suite du projet m’a conduit à modéliser les données sous forme de tables normalisées, puis à créer un requêteur SQL simple mais fonctionnel. 
 
+
+
 Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
 
 Des pistes d’amélioration du projet seraient d'ajouter une variable de configuration pour rendre le projet compatible avec d’autres éditions des Jeux Olympiques (Tokyo 2020, Londres 2012, etc.), ou intégrer un module de visualisation graphique pour compléter les requêtes SQL par des représentations plus conviviales qui pourraient de plus comparer les éditions entre elles.
-
-
-
-
-
-

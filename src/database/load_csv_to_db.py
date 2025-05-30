@@ -1,64 +1,48 @@
+import pandas as pd
 import sqlite3
-import csv
 from pathlib import Path
 
-def load_csv_to_db(conn, csv_path):
-    cursor = conn.cursor()
-
-    # Dictionnaires en mémoire pour éviter les doublons (cache)
-    sports = {}         # { nom_sport : id_sport }
-    epreuves = {}       # { (nom_epreuve, id_sport) : id_epreuve }
-
-    with open(csv_path, newline='', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-
-        for row in reader:
-            sport = row["sport"].strip()
-            epreuve = row["epreuve"].strip()
-            classement = row["classement"]
-            medaille = row["medaille"] if row["medaille"] in ["O", "A", "B"] else None
-            equipe = row["equipe"]
-            participant = row["participant"]
-            resultats = row["resultats"]
-            note = row["note"]
-
-            # Insérer ou récupérer id_sport
-            if sport not in sports:
-                cursor.execute("INSERT OR IGNORE INTO sport (nom_sport) VALUES (?)", (sport,))
-                cursor.execute("SELECT id_sport FROM sport WHERE nom_sport = ?", (sport,))
-                sports[sport] = cursor.fetchone()[0]
-            id_sport = sports[sport]
-
-            # Insérer ou récupérer id_epreuve
-            cle_epreuve = (epreuve, id_sport)
-            if cle_epreuve not in epreuves:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO epreuve (nom_epreuve, id_sport)
-                    VALUES (?, ?)
-                """, (epreuve, id_sport))
-                cursor.execute("SELECT id_epreuve FROM epreuve WHERE nom_epreuve = ? AND id_sport = ?", (epreuve, id_sport))
-                epreuves[cle_epreuve] = cursor.fetchone()[0]
-            id_epreuve = epreuves[cle_epreuve]
-
-            # Insérer le résultat
-            cursor.execute("""
-                INSERT INTO resultat (id_epreuve, classement, id_medaille, equipe, participant, resultats, note)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (id_epreuve, classement, medaille, equipe, participant, resultats, note))
-
-    # Valider les insertions
-    conn.commit()
-
-def main():
-    # Chemins vers la base de données et le fichier CSV
-    db_path = Path("data/paris2024.db")
+def load_dataframes_and_insert():
+    # Définition des chemins
     csv_path = Path("data/rawdata.csv")
+    db_path = Path("data/paris2024.db")
 
-    # Connexion à la base et chargement des données
+    # Chargement des données brutes
+    df = pd.read_csv(csv_path)
+
+    # Nettoyage des champs
+    df["sport"] = df["sport"].astype(str).str.strip()
+    df["epreuve"] = df["epreuve"].astype(str).str.strip()
+
+    # Création de la table sport avec id_sport
+    df_sport = df[["sport"]].drop_duplicates().reset_index(drop=True)
+    df_sport["id_sport"] = df_sport.index + 1
+    df = df.merge(df_sport, on="sport", how="left")
+
+    # Création de la table epreuve avec id_epreuve
+    df_epreuve = df[["epreuve", "id_sport"]].drop_duplicates().reset_index(drop=True)
+    df_epreuve["id_epreuve"] = df_epreuve.index + 1
+    df = df.merge(df_epreuve, on=["epreuve", "id_sport"], how="left")
+
+    # Préparation de la table resultat
+    # Normalisation des médailles : seules "O", "A", "B" sont conservées
+    df["id_medaille"] = df["medaille"].where(df["medaille"].isin(["O", "A", "B"]), None)
+
+    df_resultat = df[[
+        "id_epreuve", "classement", "id_medaille", "equipe",
+        "participant", "resultats", "note"
+    ]]
+
+    # Connexion SQLite
     conn = sqlite3.connect(db_path)
-    load_csv_to_db(conn, csv_path)
+
+    # Insertion des tables dans la base
+    df_sport.rename(columns={"sport": "nom_sport"}).to_sql("sport", conn, if_exists="append", index=False)
+    df_epreuve.rename(columns={"epreuve": "nom_epreuve"}).to_sql("epreuve", conn, if_exists="append", index=False)
+    df_resultat.to_sql("resultat", conn, if_exists="append", index=False)
+
     conn.close()
-    print(f"[OK] Données importées depuis {csv_path} vers {db_path}")
+    print(f"[OK] Données insérées dans {db_path}")
 
 if __name__ == "__main__":
-    main()
+    load_dataframes_and_insert()
