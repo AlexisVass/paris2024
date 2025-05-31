@@ -87,16 +87,19 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1  # Windows PowerShell**
 source .venv/bin/activate  # Linux/macOS**
 ```
-**3. Installer les dépendances:**
+**3. Installer la bibliothèque pandas sur l'environnement activé**
 ```bash
 pip install pandas
+```
+**4. Installer les dépendances:**
+```bash
 pip install -r requirements.txt
 ```
-**4. Installer playwright:**
+**5. Installer playwright:**
 ```bash
 python -m pip install playwright
 ```
-**5. Installer les navigateurs pour Playwright:**
+**6. Installer les navigateurs pour Playwright:**
 ```bash
 python -m playwright install
 ```  
@@ -108,15 +111,13 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .venv\Scripts\Activate.ps1  # Windows PowerShell**
 source .venv/bin/activate  # Linux/macOS**
 ```
-
-**3. Si Erreur SSL  (CERTIFICATE_VERIFY_FAILED)**
+**4. Si Erreur SSL  (CERTIFICATE_VERIFY_FAILED)**
 ```bash
 pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
 pip install -r requirements.txt
 ```
 
-**4. Désactiver la vérification des certificats TLS (SSL)**
+**5. Désactiver la vérification des certificats TLS (SSL)**
 ```bash
 $env:NODE_TLS_REJECT_UNAUTHORIZED = "0"
 python -m pip install playwright
