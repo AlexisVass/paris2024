@@ -89,6 +89,7 @@ source .venv/bin/activate  # Linux/macOS**
 ```
 **3. Installer les dépendances:**
 ```bash
+pip install pandas
 pip install -r requirements.txt
 ```
 **4. Installer playwright:**
