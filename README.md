@@ -23,7 +23,7 @@ Plus précisément, l’objectif est :
 * de stocker ces données dans une base de données relationnelle;
 * de permettre une restitution de ces données via un requêteur SQL interactif.
 
-Le projet repose intégralement sur l’écosystème Python, avec :
+Le projet repose intégralement sur l’écosystème Python 3.13, avec :
 
 * Playwright pour le scraping
 * SQLite pour la base de données
@@ -75,43 +75,54 @@ $ cd paris2024
 ```
 
 ## I.2 Installation locale à effectuer
+
+Avant d'installer les dépendances, assurez-vous que votre environnement Python est en version 3.13 ou supérieure, car certaines bibliothèques requièrent cette version pour fonctionner correctement.
+
 **1. Créer un environnement virtuel** :
 ```bash
 python -m venv .venv
 ```
-**2. (Si erreur d’activation) Autoriser les scripts PowerShell**
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-**3. Activer l'environnement** :
+**2. Activer l'environnement** :
 ```powershell
 .venv\Scripts\Activate.ps1  # Windows PowerShell**
 source .venv/bin/activate  # Linux/macOS**
 ```
-**4. (Optionnel) Télécharger les navigateurs via un miroir rapide :**
-```powershell
-$env:PLAYWRIGHT_DOWNLOAD_HOST = "https://playwright.azureedge.net"
-```
-**5. Installer les dépendances:**
+**3. Installer les dépendances:**
 ```bash
 pip install -r requirements.txt
 ```
-/!\  Remarque : Si l'installation des dépendances échoue à cause d'une erreur SSL (CERTIFICATE_VERIFY_FAILED), on peut relancer la commande suivante pour contourner le problème :
-
+**4. Installer playwright:**
 ```bash
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+python -m pip install playwright
+```
+**5. Installer les navigateurs pour Playwright:**
+```bash
+python -m playwright install
+```  
+## I.3 En cas d'erreurs rencontrées lors de ces étapes d'installation :
+
+**2. Si erreur d’activation : autoriser les scripts PowerShell**
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.venv\Scripts\Activate.ps1  # Windows PowerShell**
+source .venv/bin/activate  # Linux/macOS**
 ```
 
-**6. (Optionnel) Si playwright est mal installé depuis requirements.txt : Ré-installer playwright:**
+**3. Si Erreur SSL  (CERTIFICATE_VERIFY_FAILED)**
+```bash
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+pip install -r requirements.txt
+```
+
+**4. Désactiver la vérification des certificats TLS (SSL)**
 ```bash
 $env:NODE_TLS_REJECT_UNAUTHORIZED = "0"
 python -m pip install playwright
 ```
-**7. Installer les navigateurs pour Playwright:**
-```bash
-python -m playwright install
-```  
-## I.3 Exécution du projet
+
+
+## I.4 Exécution du projet
 L'application est alors prête à être utilisée. Il suffit pour cela d'exécuter depuis une console active (dans l’environnement `.venv`) le fichier principal `main.py` qui se trouve à la racine du projet.
 
 Assurez-vous que :
@@ -127,8 +138,8 @@ Ce programme "main.py" exécute l'ensemble de la chaine de traitement : il parco
 **/!\  Attention :**  
 _Pendant l’exécution du programme, il est important de ne pas interagir manuellement avec les fenêtres du navigateur que le script ouvre automatiquement. Cliquer, fermer ou bouger quoi que ce soit peut perturber le déroulement du scraping, entraîner des erreurs, ou bloquer l’extraction de certaines données. Par précaution, il est également préférable de ne pas utiliser un autre navigateur en parallèle, surtout si vous êtes connecté au même site. Cela peut interférer avec les sessions en cours du script._
 
-## I.4  Utilisation du Requêteur
-### I.4.1 **Menu proposé**
+## I.5  Utilisation du Requêteur
+### I.5.1 **Menu proposé**
 Le fichier requeteur.py lance un menu interactif en console permettant d’interroger la base sqlite paris2024.db :
 
 ```
@@ -140,7 +151,7 @@ Le fichier requeteur.py lance un menu interactif en console permettant d’inter
 0 - Quitter
 ```
 
-### I.4.2 **Choisir une requête prédéfinie**
+### I.5.2 **Choisir une requête prédéfinie**
 
 Le choix 1 permet de sélectionner une requête prédéfinie stockée dans un des fichiers (.sql) situés dans le dossier "src/database/requetes_sql". Si la requête contient des paramètres nommés (:pays, :epreuve, etc.), ils sont automatiquement détectés et demandés à l'utilisateur.
 
@@ -157,14 +168,14 @@ Voici la liste des requêtes disponibles :
 
 Il est possible de rajouter des requêtes prédéfinies supplémentaires. Pour cela, il suffit de mettre le SQL de la requête dans un fichier (.sql)  et de placer ce fichier dans le répertoire "src/database/requetes_sql/". La nouvelle requête apparaitra alors dans la liste des requêtes disponibles au choix 1 du menu.
 
-### I.4.3 **Saisir manuellement une requête SQL**
+### I.5.3 **Saisir manuellement une requête SQL**
 
 Le choix 2 permet de saisir manuellement une requête SQL directement depuis la console (donc en une seule ligne).
 La requête est exécutée et les résultats sont affichés dans la console.
 
 <u>/!\ _Attention de ne pas oublier le point virgule en fin d'instruction SQL_</u>
 
-### I.4.4 **Modèle de données**
+### I.5.4 **Modèle de données**
 Le choix 3 permet d'afficher la liste les tables de la base de données avec les différents champs et leur type pour aider à la rédaction des requêtes manuelles. Le graphique du schéma relationnel est disponible au paragraphe  II.4.1
 
 _________________________
