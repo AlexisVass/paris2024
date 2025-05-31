@@ -588,15 +588,20 @@ Et d’obtenir tous les résultats comme :
 | Thaïlande         | Argent   |  3 |
 | Thaïlande         | Bronze   |  2 |
 
+## II 5 Validation du projet
+Pour vérifier si le projet restitue fidèlement les données du site des jeux olympiques, j'ai comparé les données restituées par la requête prédéfinie "2-Résultats par épreuve" avec celles affichées par le site pour quelques épreuves et vérifié que cela correspondait.
+
+En plus de ces tests unitaires, j'ai voulu faire un test plus global en comparant la requête "3-Tableau des medailles par pays" avec le tableau des médailles disponible sur le site. Mais celui n'étant pas fonctionnel, j'ai utilisé le tableau des médailles du site https://www.lequipe.fr/jeux-olympiques-ete/page-tableau-des-medailles/par-pays :
 
 
+![Tableau_Médailles_Requeteur](/images/tableau_medailles_Requeteur.png "Tableau_Médailles_Requeteur")
+
+![Tableau_Médailles_Lequipe](/images/tableau_medailles_Lequipe.png "Tableau_Médailles_Lequipe")
 ___________________
 # III - Conclusion
 
 Ce projet m’a permis d’explorer de bout en bout une problématique concrète de collecte et d’exploitation de données issues d’un site web moderne. L’objectif était de récupérer automatiquement les résultats des épreuves des Jeux Olympiques de Paris 2024, puis de structurer ces données dans une base relationnelle interrogeable. Pour cela, j’ai utilisé Playwright afin d’automatiser la navigation sur un site entièrement dynamique, ce qui m’a confronté à des problématiques comme le chargement différé des blocs, le scroll automatique ou encore la gestion des éléments interactifs. La suite du projet m’a conduit à modéliser les données sous forme de tables normalisées, puis à créer un requêteur SQL simple mais fonctionnel. 
 
-
-
-Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE Paris. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
+J'ai ainsi eu l'occasion de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE Paris. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
 
 Les pistes d’amélioration du projet seraient d'intégrer un module de visualisation graphique (matplotlib/seaborn) pour compléter les requêtes SQL par des représentations plus conviviales ou bien d'ajouter une variable de configuration "edition" pour pouvoir explorer les résultats d’autres éditions des Jeux Olympiques (Beijing 2022, Tokyo 2020, Rio 2016, Londres 2012, ...)
