@@ -117,7 +117,7 @@ pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r req
 pip install -r requirements.txt
 ```
 
-**5. Désactiver la vérification des certificats TLS (SSL)**
+**5. Si erreur, désactiver la vérification des certificats TLS (SSL)**
 ```bash
 $env:NODE_TLS_REJECT_UNAUTHORIZED = "0"
 python -m pip install playwright
@@ -367,7 +367,7 @@ sport,epreuve,classement,medaille,equipe,participant,resultats,note
 
 Ce traitement permet d’extraire 9294 résultats à partir des 329 épreuves listées dans le fichier epreuves.csv
 
-## II 4 Partie Database
+## II 4 Détail de la partie Database
 ### II.4.1 Création du Modèle de données (init_db.py)
 Ce script crée le schéma relationnel de la base SQLite paris2024.db.
 
@@ -421,7 +421,7 @@ Enfin, les noms des colonnes ont été choisis pour être explicites et respecte
 
 **Remarque :** La table sqlite_sequence est une table système utilisée automatiquement par SQLite pour gérer l’autoincrémentation des clés primaires.
 
-### II.4.2 – Chargement des données dans la base de données
+### II.4.2 – Chargement des données dans la base
 Les scripts suivants assurent le chargement des données dans la base de données. Pour charger une table contenant des clés étrangères (FK), il faut préalablement charger la table de référence pour respecter l'intégrité référentielle. De ce fait, l'ordre de chargement des tables est le suivant : 
 
 1. medaille 
@@ -444,16 +444,16 @@ vide avant chargement.
 #### II.4.2.2 – Chargement des résultats des épreuves (load_csv_to_db.py)
 Ce script lit le fichier rawdata.csv dans un dataframe initial, puis construit dynamiquement les trois tables relationnelles sport, epreuve et resultat.
 
-Les libellés de sport et d’épreuve sont d’abord nettoyés, puis dédupliqués pour créer deux dataframes distincts (df_sport, df_epreuve) avec des clés primaires générées (id_sport, id_epreuve). Ces identifiants sont ensuite injectés dans le dataframe initial afin de préparer un chargement propre dans la table resultat.
+Les libellés de sport et d’épreuve sont d’abord nettoyés, puis dédupliqués pour créer deux dataframes distincts (df_sport, df_epreuve) avec des clés primaires générées (id_sport, id_epreuve). Ces identifiants sont ensuite injectés dans le dataframe initial afin de préparer un chargement propre dans la table resultat de la base.
 
 Les valeurs de médailles sont standardisées et transformées en codes ("O", "A", "B") ou laissées à NULL si absentes. La colonne equipe est également conservée telle quelle, ce qui implique un traitement correctif ultérieur (voir II.4.2.3).
 
 L’ensemble des données est au final inséré dans la base via la méthode to_sql() de pandas.
 
 #### II.4.2.3 – Récupération des pays manquants (fix_na_pays.py)
-On a vu que certaines lignes de resultat ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping). Comme j'ai utilisé des dataframes pour charger la table resultat, les "N/A" dans la colonne equipe ont été convertis en NaN, puis en NULL dans SQLite.
+On a vu que certaines lignes de la table resultat ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping). En effet, comme j'ai utilisé des dataframes pour charger la table resultat, les valeurs "N/A" dans la colonne equipe ont été convertis en NaN, puis en NULL dans SQLite.
 
-Le script fix_na_pays.py tente de corriger cela en identifiant les lignes de la table resultat où le champ equipe est NULL et où le participant correspond à un pays connu (présent dans la table pays). Lorsqu’une correspondance est trouvée, "equipe" est mis à jour avec la clé étrangère correspondante (id_pays).
+Le script fix_na_pays.py tente de corriger les lignes de la table resultat où le champ equipe est NULL et où la valeur du champ participant correspond à un nom_pays connu (présent dans la table pays). Lorsqu’une correspondance est trouvée, "equipe" est mis à jour avec la clé étrangère correspondante (id_pays) qui est le trigrame du pays.
 
 Cette opération permet de remplacer les valeurs null par une valeur fiable et d'éviter ainsi de devoir faire des jointures externes lorsqu'on analyse les données par pays.
 
@@ -465,7 +465,7 @@ Certaines requêtes contiennent des paramètres nommés (comme :pays ou :epreuve
 
 #### II.4.3.1 Liste des requêtes disponibles
 
-| Fichier SQL                                | Description                                                             |
+| Nom du fichier SQL                                | Descriptif de la requête                                                             |
 |-------------------------------------------|-------------------------------------------------------------------------|
 | 1-Liste des sports et épreuves.sql        | Affiche la liste des sports et des épreuves associées                  |
 | 2-Résultats par épreuve.sql               | Affiche les résultats d’une épreuve (classement, pays, performance...) |
@@ -597,6 +597,6 @@ Ce projet m’a permis d’explorer de bout en bout une problématique concrète
 
 
 
-Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
+Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE Paris. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
 
 Les pistes d’amélioration du projet seraient d'intégrer un module de visualisation graphique (matplotlib/seaborn) pour compléter les requêtes SQL par des représentations plus conviviales ou bien d'ajouter une variable de configuration "edition" pour pouvoir explorer les résultats d’autres éditions des Jeux Olympiques (Beijing 2022, Tokyo 2020, Rio 2016, Londres 2012, ...)
