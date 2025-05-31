@@ -178,11 +178,11 @@ Les modules nécessaires au projet sont répertoriés dans le fichier `requireme
 | playwright         | Bibliothèque de scraping permettant d'automatiser un navigateur |
 | pyee               | Fournit un système d’événements utilisé en interne par Playwright              |
 | typing_extensions  | Apporte des compléments de typage statique pour Python | 
-
+| pandas             | Utilisé pour le traitement structuré des données, la transformation des CSV en DataFrames, et la gestion intermédiaire des tables sport, épreuve et résultat |
 
 ## II.2 Architecture du code
 ### II.2.1 - Fichier main.py
- Le fichier main.py est le programme principal qui lance automatiquement et de façon séquentielle tous les traitements : 
+ Le fichier main.py est le programme principal qui lance automatiquement tous les traitements : 
 
    - un premier scraping du site pour en extraire les URL à parcourir (une par épreuve).
    - un second scraping su site qui parcourt ces URL et en extrait les données des résultats des épreuves.
@@ -284,19 +284,22 @@ Ce sont les données de ces tableaux (un pour chaque épreuve de tous les sports
 
 ### II.3.2 Pourquoi avoir utilisé Playwright ?
 
-Le site officiel des JO Paris 2024 charge la majorité de ses données via JavaScript de manière dynamique.  Par exemple, les blocs de résultats (sports, épreuves, tableaux) n’apparaissent qu’après défilement ou clics sur certains boutons.
+Le site officiel des JO Paris 2024 charge la majorité de ses données via JavaScript de manière dynamique.  Par exemple, les blocs de résultats (sports, épreuves, tableaux) n’apparaissent qu’après défilement ou clics sur certains boutons. Or une solution de scraping classique (comme BeautifulSoup) ne permet pas de capturer ces éléments dynamiques.
 
-Or une solution de scraping classique (comme `BeautifulSoup`) ne permet pas de capturer ces éléments dynamiques. Playwright, à l’inverse, permet de complètement piloter le navigateur et de simuler un utilisateur humain qui effectue les actions nécessaires (cookies, clics, scroll, attente de chargement).  On peut ainsi récupérer l’ensemble du contenu HTML final tel qu’il est affiché dans le navigateur, après exécution du JavaScript.
+Playwright, à l’inverse, permet de complètement piloter le navigateur et de simuler un utilisateur humain qui effectue les actions nécessaires (cookies, clics, scroll, attente de chargement).  On peut ainsi récupérer l’ensemble du contenu HTML final tel qu’il est affiché dans le navigateur, après exécution du JavaScript.
 
 Playwright, qui est aussi utilisé pour automatiser les tests de sites web, est donc incontournable pour réaliser le scraping du site des J.O.
 
 ### II.3.3 Récupération des URL à parcourir (scraping_des_url_a_parcourir.py)
-Ce script effectue un scroll automatique de la page principale pour charger dynamiquement tous les blocs de sports. Il utilise Playwright pour :
 
-* Cliquer automatiquement sur « Tout accepter » pour les cookies
+Le but de ce programme est, comme son nom l'indique, de recenser toutes les URL des pages de résultats des épreuves et ceci sport par sport.
+
+Il effectue pour cela tout d'abord un scroll automatique de la page principale pour charger dynamiquement tous les blocs de sports. Puis pour chaque bloc de sport, il utilise Playwright pour :
+
+* Cliquer automatiquement sur « Tout accepter » (pop up d'acceptation des cookies)
 * Simuler un scroll bas (avec evaluate() en JavaScript)
-* Cliquer sur les boutons « Tout afficher » lorsque ils sont présents
-* Extraire tous les liens vers les pages de résultats d’épreuves
+* Cliquer sur le bouton « Tout afficher » pour déplier tous les blocs
+* Extraire toutes les URL vers les pages de résultats d’épreuves qui se trouvent derrière les liens "Voir tous les résultats"
 * Écrire ces URLs dans un fichier epreuves.csv qui a pour format :
 ```
 csv
@@ -307,7 +310,7 @@ On récupère ainsi 329 URLs dans le fichier "epreuves.csv". Les doublons évent
 
 ### II.3.4 Récupération des résultats des épreuves (scraping_des_resultats_epreuves.py)
 
-Ce script lit séquentiellement toutes les URLs qui ont été stockées dans le fichier epreuves.csv, et pour chaque URL (donc pour chaque épreuve), voici ce qu'il fait :
+Ce script lit séquentiellement toutes les URLs qui ont été préalablement stockées dans le fichier epreuves.csv, et pour chaque URL (donc pour chaque épreuve), voici ce qu'il fait :
 
 1. Ouverture de la page d’épreuve avec page.goto(...)
 2. Détection dynamique du tableau contenant les résultats.
@@ -344,9 +347,9 @@ csv
 sport,epreuve,classement,medaille,equipe,participant,resultats,note
 ```
 
-* Si le code pays n’est pas reconnu, "N/A" est utilisé (et corrigé plus tard par fix_na_pays.py)
+* Si le code pays n’est pas reconnu, on lui affecte la valeur "N/A" (cette valeur sera corrigée plus tard par fix_na_pays.py)
 * Les lignes vides ou incomplètes sont filtrées
-* Les noms multiples (duos, relais) sont normalisés avec /
+* Les noms multiples (duos, relais) sont normalisés, c’est-à-dire concaténés à l’aide du caractère / afin de conserver une seule chaîne de texte représentant l’ensemble des participants.
 
 
 Ce traitement permet d’extraire 9294 résultats à partir des 329 épreuves listées dans le fichier epreuves.csv
@@ -364,7 +367,7 @@ Les cardinalités du modèle conceptuel des données sont les suivantes:
 * un résultat est lié à 0 ou une médaille (relation 0 → 1)
 * une médaille peut être attribuée à plusieurs résultats (relation 1 → n)
 * un résultat est lié à un et un seul pays (relation 1 → 1)
-* un pays epeut être attribuée à plusieurs résultats (relation 1 → n)
+* un pays peut être attribuée à plusieurs résultats (relation 1 → n)
 * une épreuve est liée à un et un seul sport (relation 1 → 1)
 * un sport regroupe plusieurs épreuves (relation 1 → n)
 
@@ -419,30 +422,31 @@ Les scripts suivants assurent le chargement des données dans la base de donnée
 
 * Les données des tables sport, epreuve et resultat sont directement extraites des données brutes du scraping (fichier rawdata.csv)
 
-* Par contre, la table pays est chargée avec un fichier pays.csv complet avec des données récupérées sur le net. J'ai du procéder ainsi parce que pour les sports en équipe, le champ participant contient un nom de pays qui quelquefois n'était pas déjà répertorié dans les épreuves individuelles où dont le libéllé différait un peu. J'ai donc du construire une table pays plus complète.
+* Par contre, la table pays est chargée avec un fichier pays.csv complet avec des données récupérées sur le net. J'ai du procéder ainsi parce que pour les sports en équipe, le champ participant contient un nom de pays qui quelquefois n'était pas déjà répertorié dans les épreuves individuelles où bien dont le libéllé différait un peu. J'ai donc du construire une table pays plus complète.
 
 #### II.4.2.1 – Chargement des pays (load_pays.py)
 Ce programme lit le fichier pays.csv, contenant les couples (id_pays, nom_pays), et les insère dans la table pays qu'il
 vide avant chargement.
 
 #### II.4.2.2 – Chargement des résultats des épreuves (load_csv_to_db.py)
-Ce script lit le fichier rawdata.csv dans un DataFrame pandas, puis construit dynamiquement les trois tables relationnelles sport, epreuve et resultat.
+Ce script lit le fichier rawdata.csv dans un dataframe initial, puis construit dynamiquement les trois tables relationnelles sport, epreuve et resultat.
 
-Les libellés de sport et d’épreuve sont d’abord nettoyés, puis dédupliqués pour créer deux DataFrames distincts (df_sport, df_epreuve) avec des clés primaires simulées (id_sport, id_epreuve). Ces identifiants sont ensuite injectés dans le DataFrame initial afin de préparer un chargement propre dans la table resultat.
+Les libellés de sport et d’épreuve sont d’abord nettoyés, puis dédupliqués pour créer deux dataframes distincts (df_sport, df_epreuve) avec des clés primaires générées (id_sport, id_epreuve). Ces identifiants sont ensuite injectés dans le dataframe initial afin de préparer un chargement propre dans la table resultat.
 
 Les valeurs de médailles sont standardisées et transformées en codes ("O", "A", "B") ou laissées à NULL si absentes. La colonne equipe est également conservée telle quelle, ce qui implique un traitement correctif ultérieur (voir II.4.2.3).
 
-L’ensemble des données est au final inséré dans la base via la méthode to_sql() de pandas, ce qui permet de respecter le modèle relationnel.
+L’ensemble des données est au final inséré dans la base via la méthode to_sql() de pandas.
 
 #### II.4.2.3 – Récupération des pays manquants (fix_na_pays.py)
-On a vu que certaines lignes de resultat ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping). Comme j'ai utilisé des DataFrames pour charger la table resultat, les "N/A" dans la colonne equipe ont été convertis en NaN, puis en NULL dans SQLite.
+On a vu que certaines lignes de resultat ont le champ equipe à "N/A" (valeur par défaut lorsqu'aucun code pays n’a été détecté lors du scraping). Comme j'ai utilisé des dataframes pour charger la table resultat, les "N/A" dans la colonne equipe ont été convertis en NaN, puis en NULL dans SQLite.
 
-Le script fix_na_pays.py tente de corriger cela en identifiant les lignes de la table resultat où equipe est NULL et où le participant correspond à un pays connu (présent dans la table pays). Lorsqu’une correspondance est trouvée, equipe est mise à jour avec la clé étrangère correspondante (id_pays).
+Le script fix_na_pays.py tente de corriger cela en identifiant les lignes de la table resultat où le champ equipe est NULL et où le participant correspond à un pays connu (présent dans la table pays). Lorsqu’une correspondance est trouvée, "equipe" est mis à jour avec la clé étrangère correspondante (id_pays).
 
-Cette opération permet de remplacer les valeurs null par des données fiables et d'éviter de devoir faire des jointures externes lorsqu'on analyse les données par pays.
+Cette opération permet de remplacer les valeurs null par une valeur fiable et d'éviter ainsi de devoir faire des jointures externes lorsqu'on analyse les données par pays.
 
 ### II.4.3  Requêtes SQL prédéfinies
-Le projet propose un ensemble de requêtes SQL prêtes à l’emploi pour interroger la base paris2024.db. Ces requêtes permettent d'explorer la base de données avec quelques restitutions basiques. Elles sont stockées dans le dossier src/database/requetes_sql/ et de ce fait sont détectées et proposées dans le menu du requêteur (choix 1).
+Le projet propose un ensemble de requêtes SQL prêtes à l’emploi pour interroger la base paris2024.db. Ces requêtes permettent d'explorer la base de données avec quelques restitutions basiques.
+Elles sont stockées dans le dossier src/database/requetes_sql/ et de ce fait sont détectées et proposées dans le menu du requêteur (choix 1).
 
 Certaines requêtes contiennent des paramètres nommés (comme :pays ou :epreuve), qui sont demandés à l'utilisateur lors de l'exécution.
 
@@ -536,7 +540,7 @@ Il est possible de rajouter une nouvelle requête pré définie tout simplement 
 
 #### II.4.3.3 Recherches floues et insensibles à la casse
 
-Pour certaines requêtes, les recherches sont volontairement rendues floues et insensibles à la casse. C’est le cas notamment pour la recherche d’épreuves ou de pays, où le paramètre saisi est comparé en minuscules à une concaténation de colonnes;
+Pour certaines requêtes, les recherches sont volontairement rendues floues et insensibles à la casse. C’est le cas notamment pour la recherche d’épreuves ou de pays, où le paramètre saisi est comparé en minuscules à une concaténation de colonnes.
 
 J'utilise pour cela une clause WHERE avec l’opérateur LIKE combiné à LOWER(...) afin de rendre la recherche floue (partielle) et insensible à la casse. 
 
@@ -582,4 +586,4 @@ Ce projet m’a permis d’explorer de bout en bout une problématique concrète
 
 Ce travail m’a permis de mobiliser des compétences en Python, JavaScript, modélisation relationnelle et manipulation de données, telles qu’enseignées dans le cadre du parcours Data Science & IA de l’ESIEE. De plus, cela m’a permis de franchir un cap avec l'utilisation de Playwright, ayant jusque-là principalement travaillé avec BeautifulSoup pour faire du scraping sur des pages statiques.
 
-Des pistes d’amélioration du projet seraient d'ajouter une variable de configuration pour rendre le projet compatible avec d’autres éditions des Jeux Olympiques (Tokyo 2020, Londres 2012, etc.), ou intégrer un module de visualisation graphique pour compléter les requêtes SQL par des représentations plus conviviales qui pourraient de plus comparer les éditions entre elles.
+Les pistes d’amélioration du projet seraient d'intégrer un module de visualisation graphique (matplotlib/seaborn) pour compléter les requêtes SQL par des représentations plus conviviales ou bien d'ajouter une variable de configuration "edition" pour pouvoir explorer les résultats d’autres éditions des Jeux Olympiques (Beijing 2022, Tokyo 2020, Rio 2016, Londres 2012, ...)
