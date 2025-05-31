@@ -597,6 +597,9 @@ En plus de ces tests unitaires, j'ai voulu faire un test plus global en comparan
 ![Tableau_Médailles_Requeteur](/images/tableau_medailles_Requeteur.png "Tableau_Médailles_Requeteur")
 
 ![Tableau_Médailles_Lequipe](/images/tableau_medailles_Lequipe.png "Tableau_Médailles_Lequipe")
+
+**_On en conclut que le pipeline du projet (scraping + database + requêteur) restitue fidèlement les données du site officiel des jeux olympiques._**
+
 ___________________
 # III - Conclusion
 
