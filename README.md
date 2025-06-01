@@ -589,10 +589,9 @@ Et d’obtenir tous les résultats comme :
 | Thaïlande         | Bronze   |  2 |
 
 ## II 5 Validation du projet
-Pour vérifier si le projet restitue fidèlement les données du site des jeux olympiques, j'ai comparé les données restituées par la requête prédéfinie "2-Résultats par épreuve" avec celles affichées par le site pour quelques épreuves et vérifié que cela correspondait.
+Pour valider l'exactitude des données extraites du site officiel des Jeux Olympiques de Paris 2024, j'ai d'abord utilisé la requête "8 Nombre d'épreuves par sport" pour m'assurer que les 45 sports et leurs épreuves ont été correctement récupérés. Ensuite, j'ai effectué des vérifications ponctuelles en comparant les résultats obtenus via la requête "2-Résultats par épreuve" avec les informations disponibles sur le site officiel pour certaines épreuves spécifiques, confirmant ainsi la fidélité des données collectées.
 
-En plus de ces tests unitaires, j'ai voulu faire un test plus global en comparant la requête "3-Tableau des medailles par pays" avec le tableau des médailles disponible sur le site. Mais celui n'étant pas fonctionnel, j'ai utilisé le tableau des médailles du site https://www.lequipe.fr/jeux-olympiques-ete/page-tableau-des-medailles/par-pays :
-
+En plus de ces tests unitaires, j'ai effectué une validation plus globale en comparant les résultats de la requête "3-Tableau des médailles par pays" avec les données officielles. Cependant, le tableau des médailles du site olympics.com n'étant pas fonctionnel à ce moment-là, j'ai utilisé le tableau disponible sur le site de L'Équipe . Cette comparaison a permis de confirmer la cohérence des données extraites avec celles publiées par une source reconnue.:
 
 ![Tableau_Médailles_Requeteur](/images/tableau_medailles_Requeteur.png "Tableau_Médailles_Requeteur")
 
