@@ -6,8 +6,8 @@ __pycache__/
 *.pyc
 
 # Données générées
-*.db
-data/rawdata.csv
+#*.db
+#data/rawdata.csv
 
 # Fichiers système
 .DS_Store
